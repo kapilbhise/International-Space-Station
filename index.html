@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>Fetch JSON from API and map latitude and longitude</title>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+   crossorigin=""/>
+	 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+   crossorigin=""></script>
+	 <style media="screen">
+	 	#issMap { height: 180px; }
+	 </style>
+
+	<!-- <script src="sketch.js"></script> -->
+
+</head>
+<body>
+	<h1>Where is The ISS?</h1>
+	<h3 >latitude : <span id="lat"></span>°</h3>
+	<h3 >langitude: <span id="long"></span>°</h3>
+	<div id="issMap"></div>
+	<script>
+
+		//making map and tiles
+		var mymap = L.map('issMap').setView([0,0], 1);
+
+		const attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributers';
+		const tileUrl="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+		const tiles=L.tileLayer(tileUrl,{attribution})
+		tiles.addTo(mymap);
+
+		//making icon
+		var issIcon = L.icon({
+	    iconUrl: 'iss200.png',
+	    iconSize: [50, 32],
+	    iconAnchor: [25, 16],
+
+
+		});
+
+		var firstTime=true;
+		const url="https://api.wheretheiss.at/v1/satellites/25544";
+		async function getData(){
+			const response=await fetch(url);
+			const data= await response.json();
+			console.log(data);
+			const {latitude,longitude}=data;
+
+			//L.marker([latitude, longitude]).addTo(mymap);
+			//L.marker([0,0]);
+			//making a marker
+			const marker=L.marker([0,0],{icon:issIcon}).addTo(mymap);
+			marker.setLatLng([latitude,longitude]);
+			if(firstTime){
+				mymap.setView([latitude,longitude], 2);
+				firstTime=false;
+			}
+
+			document.getElementById("lat").textContent=latitude.toFixed(2);
+			document.getElementById("long").textContent=longitude.toFixed(2);
+		}
+		getData();
+		setInterval(getData,1000);
+	</script>
+</body>
+</html>
